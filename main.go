@@ -70,7 +70,9 @@ func (self *Cache) Read(i Cacheable) (data string, ok bool) {
 // overwritten.
 func (self *Cache) Write(i Cacheable, s string) {
 
-	if rand.Intn(mapCleanDivisor) <= mapCleanProbability {
+	if maxCachedObjects > 0 && maxCachedObjects < len(self.cache) {
+		self.Clear()
+	} else if rand.Intn(mapCleanDivisor) <= mapCleanProbability {
 		self.Clear()
 	}
 
