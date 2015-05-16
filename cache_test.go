@@ -21,8 +21,78 @@
 
 package cache
 
-// A Cacheable type needs a Hash() method that returns a key. This key will be
-// associated with a cached value.
-type Cacheable interface {
-	Hash() string
+import (
+	"testing"
+)
+
+var c *Cache
+
+type cacheableT struct {
+	Name string
+}
+
+func (ct *cacheableT) Hash() string {
+	return ct.Name
+}
+
+var (
+	key   = &cacheableT{"foo"}
+	value = "bar"
+)
+
+func TestNewCache(t *testing.T) {
+	c = NewCache()
+	if c == nil {
+		t.Fatal("Expecting a new cache object.")
+	}
+}
+
+func TestCacheReadNonExistentValue(t *testing.T) {
+	if _, ok := c.Read(key); ok {
+		t.Fatal("Expecting false.")
+	}
+}
+
+func TestCacheWritingValue(t *testing.T) {
+	c.Write(key, value)
+}
+
+func TestCacheReadExistentValue(t *testing.T) {
+	s, ok := c.Read(key)
+
+	if !ok {
+		t.Fatal("Expecting true.")
+	}
+
+	if s != value {
+		t.Fatal("Expecting value.")
+	}
+}
+
+func BenchmarkNewCache(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = NewCache()
+	}
+}
+
+func BenchmarkReadNonExistentValue(b *testing.B) {
+	z := NewCache()
+	for i := 0; i < b.N; i++ {
+		z.Read(key)
+	}
+}
+
+func BenchmarkWriteValue(b *testing.B) {
+	z := NewCache()
+	for i := 0; i < b.N; i++ {
+		z.Write(key, value)
+	}
+}
+
+func BenchmarkReadExistentValue(b *testing.B) {
+	z := NewCache()
+	z.Write(key, value)
+	for i := 0; i < b.N; i++ {
+		z.Read(key)
+	}
 }
