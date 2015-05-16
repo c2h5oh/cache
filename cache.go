@@ -43,43 +43,42 @@ type Cache struct {
 	mu    sync.RWMutex
 }
 
-// NewCache() initializes a new caching space.
+// NewCache initializes a new caching space.
 func NewCache() (c *Cache) {
 	c = new(Cache)
 	c.Clear()
 	return
 }
 
-// Read() attempts to retrieve a cached value from memory. If the value does
-// not exists returns an empty string and false.
-func (self *Cache) Read(i Cacheable) (data string, ok bool) {
+// Read attempts to retrieve a cached value from memory. If the value does not
+// exists returns an empty string and false.
+func (c *Cache) Read(i Cacheable) (data string, ok bool) {
 
-	self.mu.RLock()
-	data, ok = self.cache[i.Hash()]
-	self.mu.RUnlock()
+	c.mu.RLock()
+	data, ok = c.cache[i.Hash()]
+	c.mu.RUnlock()
 
 	return
 }
 
-// Write() stores a value in memory. If the value already exists its
-// overwritten.
-func (self *Cache) Write(i Cacheable, s string) {
+// Write stores a value in memory. If the value already exists its overwritten.
+func (c *Cache) Write(i Cacheable, s string) {
 
-	if maxCachedObjects > 0 && maxCachedObjects < len(self.cache) {
-		self.Clear()
+	if maxCachedObjects > 0 && maxCachedObjects < len(c.cache) {
+		c.Clear()
 	} else if rand.Intn(mapCleanDivisor) <= mapCleanProbability {
-		self.Clear()
+		c.Clear()
 	}
 
-	self.mu.Lock()
-	self.cache[i.Hash()] = s
-	self.mu.Unlock()
+	c.mu.Lock()
+	c.cache[i.Hash()] = s
+	c.mu.Unlock()
 }
 
-// Clear() generates a new memory space, leaving the old memory unreferenced,
-// so it can be claimed by the garbage collector.
-func (self *Cache) Clear() {
-	self.mu.Lock()
-	self.cache = make(map[string]string)
-	self.mu.Unlock()
+// Clear generates a new memory space, leaving the old memory unreferenced, so
+// it can be claimed by the garbage collector.
+func (c *Cache) Clear() {
+	c.mu.Lock()
+	c.cache = make(map[string]string)
+	c.mu.Unlock()
 }
