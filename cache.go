@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	maxCachedObjects    = 1024 * 4
+	maxCachedObjects    = 1024 * 8
 	mapCleanDivisor     = 1000
 	mapCleanProbability = 1
 )
@@ -40,14 +40,12 @@ func init() {
 // Cache holds a map of volatile key -> values.
 type Cache struct {
 	cache map[string]string
-	mu    *sync.Mutex
+	mu    sync.RWMutex
 }
 
 // NewCache() initializes a new caching space.
 func NewCache() (c *Cache) {
-	c = &Cache{
-		mu: new(sync.Mutex),
-	}
+	c = new(Cache)
 	c.Clear()
 	return
 }
@@ -55,18 +53,15 @@ func NewCache() (c *Cache) {
 // Read() attempts to retrieve a cached value from memory. If the value does
 // not exists returns an empty string and false.
 func (self *Cache) Read(i Cacheable) (data string, ok bool) {
-	h := i.Hash()
 
-	if h != "" {
-		self.mu.Lock()
-		data, ok = self.cache[h]
-		self.mu.Unlock()
-	}
+	self.mu.RLock()
+	data, ok = self.cache[i.Hash()]
+	self.mu.RUnlock()
 
-	return data, ok
+	return
 }
 
-// Write() stores a value in memory. If the value already exists it gets
+// Write() stores a value in memory. If the value already exists its
 // overwritten.
 func (self *Cache) Write(i Cacheable, s string) {
 
@@ -76,13 +71,9 @@ func (self *Cache) Write(i Cacheable, s string) {
 		self.Clear()
 	}
 
-	h := i.Hash()
-
-	if h != "" {
-		self.mu.Lock()
-		self.cache[h] = s
-		self.mu.Unlock()
-	}
+	self.mu.Lock()
+	self.cache[i.Hash()] = s
+	self.mu.Unlock()
 }
 
 // Clear() generates a new memory space, leaving the old memory unreferenced,
