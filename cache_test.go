@@ -23,6 +23,8 @@ package cache
 
 import (
 	"testing"
+	//"strconv"
+	//"unsafe"
 )
 
 var c *Cache
@@ -32,15 +34,17 @@ type cacheableT struct {
 }
 
 func (ct *cacheableT) Hash() string {
+	//return strconv.Itoa(int(uintptr(unsafe.Pointer(ct))))
 	return ct.Name
 }
 
 var (
-	key   = &cacheableT{"foo"}
+	key   = cacheableT{"foo"}
 	value = "bar"
 )
 
 func TestNewCache(t *testing.T) {
+
 	c = NewCache()
 	if c == nil {
 		t.Fatal("Expecting a new cache object.")
@@ -48,17 +52,18 @@ func TestNewCache(t *testing.T) {
 }
 
 func TestCacheReadNonExistentValue(t *testing.T) {
-	if _, ok := c.Read(key); ok {
+	if _, ok := c.Read(&key); ok {
 		t.Fatal("Expecting false.")
 	}
 }
 
 func TestCacheWritingValue(t *testing.T) {
-	c.Write(key, value)
+	c.Write(&key, value)
+	c.Write(&key, value)
 }
 
 func TestCacheReadExistentValue(t *testing.T) {
-	s, ok := c.Read(key)
+	s, ok := c.Read(&key)
 
 	if !ok {
 		t.Fatal("Expecting true.")
@@ -71,28 +76,28 @@ func TestCacheReadExistentValue(t *testing.T) {
 
 func BenchmarkNewCache(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_ = NewCache()
+		NewCache()
 	}
 }
 
 func BenchmarkReadNonExistentValue(b *testing.B) {
 	z := NewCache()
 	for i := 0; i < b.N; i++ {
-		z.Read(key)
+		z.Read(&key)
 	}
 }
 
 func BenchmarkWriteValue(b *testing.B) {
 	z := NewCache()
 	for i := 0; i < b.N; i++ {
-		z.Write(key, value)
+		z.Write(&key, value)
 	}
 }
 
 func BenchmarkReadExistentValue(b *testing.B) {
 	z := NewCache()
-	z.Write(key, value)
+	z.Write(&key, value)
 	for i := 0; i < b.N; i++ {
-		z.Read(key)
+		z.Read(&key)
 	}
 }

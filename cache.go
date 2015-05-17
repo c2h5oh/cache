@@ -45,24 +45,23 @@ type Cache struct {
 
 // NewCache initializes a new caching space.
 func NewCache() (c *Cache) {
-	c = new(Cache)
-	c.Clear()
-	return
+	return &Cache{
+		cache: make(map[string]string),
+	}
 }
 
 // Read attempts to retrieve a cached value from memory. If the value does not
 // exists returns an empty string and false.
-func (c *Cache) Read(i Cacheable) (data string, ok bool) {
-
+func (c *Cache) Read(ob Hashable) (string, bool) {
 	c.mu.RLock()
-	data, ok = c.cache[i.Hash()]
+	data, ok := c.cache[ob.Hash()]
 	c.mu.RUnlock()
 
-	return
+	return data, ok
 }
 
 // Write stores a value in memory. If the value already exists its overwritten.
-func (c *Cache) Write(i Cacheable, s string) {
+func (c *Cache) Write(ob Hashable, s string) {
 
 	if maxCachedObjects > 0 && maxCachedObjects < len(c.cache) {
 		c.Clear()
@@ -71,7 +70,7 @@ func (c *Cache) Write(i Cacheable, s string) {
 	}
 
 	c.mu.Lock()
-	c.cache[i.Hash()] = s
+	c.cache[ob.Hash()] = s
 	c.mu.Unlock()
 }
 

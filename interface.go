@@ -21,8 +21,8 @@
 
 package cache
 
-// A Cacheable type needs a Hash() method that returns a key. This key will be
+// Hashable types must implement a method that returns a key. This key will be
 // associated with a cached value.
-type Cacheable interface {
+type Hashable interface {
 	Hash() string
 }
