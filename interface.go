@@ -26,3 +26,7 @@ package cache
 type Hashable interface {
 	Hash() string
 }
+
+// Cacheable type is deprecated but kept for backwards compatibiity. Will be
+// removed soon.
+type Cacheable Hashable
