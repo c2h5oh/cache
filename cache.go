@@ -39,14 +39,14 @@ func init() {
 
 // Cache holds a map of volatile key -> values.
 type Cache struct {
-	cache map[string]string
+	cache map[string]interface{}
 	mu    sync.RWMutex
 }
 
 // NewCache initializes a new caching space.
 func NewCache() (c *Cache) {
 	return &Cache{
-		cache: make(map[string]string),
+		cache: make(map[string]interface{}),
 	}
 }
 
@@ -57,11 +57,24 @@ func (c *Cache) Read(ob Hashable) (string, bool) {
 	data, ok := c.cache[ob.Hash()]
 	c.mu.RUnlock()
 
+	if ok {
+		if s, ok := data.(string); ok {
+			return s, true
+		}
+	}
+
+	return "", false
+}
+
+func (c *Cache) ReadRaw(ob Hashable) (interface{}, bool) {
+	c.mu.RLock()
+	data, ok := c.cache[ob.Hash()]
+	c.mu.RUnlock()
 	return data, ok
 }
 
 // Write stores a value in memory. If the value already exists its overwritten.
-func (c *Cache) Write(ob Hashable, s string) {
+func (c *Cache) Write(ob Hashable, v interface{}) {
 
 	if maxCachedObjects > 0 && maxCachedObjects < len(c.cache) {
 		c.Clear()
@@ -70,7 +83,7 @@ func (c *Cache) Write(ob Hashable, s string) {
 	}
 
 	c.mu.Lock()
-	c.cache[ob.Hash()] = s
+	c.cache[ob.Hash()] = v
 	c.mu.Unlock()
 }
 
@@ -78,6 +91,6 @@ func (c *Cache) Write(ob Hashable, s string) {
 // it can be claimed by the garbage collector.
 func (c *Cache) Clear() {
 	c.mu.Lock()
-	c.cache = make(map[string]string)
+	c.cache = make(map[string]interface{})
 	c.mu.Unlock()
 }
