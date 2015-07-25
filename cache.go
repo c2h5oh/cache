@@ -24,6 +24,7 @@ package cache
 import (
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -39,14 +40,14 @@ func init() {
 
 // Cache holds a map of volatile key -> values.
 type Cache struct {
-	cache map[string]interface{}
+	cache map[string]atomic.Value
 	mu    sync.RWMutex
 }
 
 // NewCache initializes a new caching space.
 func NewCache() (c *Cache) {
 	return &Cache{
-		cache: make(map[string]interface{}),
+		cache: make(map[string]atomic.Value),
 	}
 }
 
@@ -58,7 +59,7 @@ func (c *Cache) Read(ob Hashable) (string, bool) {
 	c.mu.RUnlock()
 
 	if ok {
-		if s, ok := data.(string); ok {
+		if s, ok := data.Load().(string); ok {
 			return s, true
 		}
 	}
@@ -70,7 +71,10 @@ func (c *Cache) ReadRaw(ob Hashable) (interface{}, bool) {
 	c.mu.RLock()
 	data, ok := c.cache[ob.Hash()]
 	c.mu.RUnlock()
-	return data, ok
+	if !ok {
+		return nil, false
+	}
+	return data.Load(), ok
 }
 
 // Write stores a value in memory. If the value already exists its overwritten.
@@ -83,7 +87,13 @@ func (c *Cache) Write(ob Hashable, v interface{}) {
 	}
 
 	c.mu.Lock()
-	c.cache[ob.Hash()] = v
+	if v == nil {
+		delete(c.cache, ob.Hash())
+	} else {
+		a := atomic.Value{}
+		a.Store(v)
+		c.cache[ob.Hash()] = a
+	}
 	c.mu.Unlock()
 }
 
@@ -91,6 +101,6 @@ func (c *Cache) Write(ob Hashable, v interface{}) {
 // it can be claimed by the garbage collector.
 func (c *Cache) Clear() {
 	c.mu.Lock()
-	c.cache = make(map[string]interface{})
+	c.cache = make(map[string]atomic.Value)
 	c.mu.Unlock()
 }
