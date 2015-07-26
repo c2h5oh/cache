@@ -16,4 +16,4 @@ env:
   - GOARCH=386
 
 script:
-  - go test -v .
+  - go test -v -race -bench=. -benchtime=10s -benchmem=true
