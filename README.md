@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/upper/cache.svg?branch=master)](https://travis-ci.org/upper/cache)
 
-This is a naive implementation of a volatile cache. You can use
+This is a naïve implementation of a volatile cache. You can use
 `upper.io/cache` to save the output of complex or time-wasting functions such
 as the output of template generators.
 
@@ -14,7 +14,7 @@ as the output of template generators.
 
 This project is licensed under the terms of the **MIT License**.
 
-> Copyright (c) 2012-2015 The upper.io/db authors. All rights reserved.
+> Copyright (c) 2014-2015 José Carlos Nieto, https://menteslibres.net/xiam
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the
