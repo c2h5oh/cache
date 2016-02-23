@@ -75,8 +75,11 @@ func (c *Cache) ReadRaw(ob Hashable) (interface{}, bool) {
 
 // Write stores a value in memory. If the value already exists its overwritten.
 func (c *Cache) Write(ob Hashable, v interface{}) {
+	c.mu.Lock()
+	l := len(c.cache)
+	c.mu.Unlock()
 
-	if maxCachedObjects > 0 && maxCachedObjects < len(c.cache) {
+	if maxCachedObjects > 0 && maxCachedObjects < l {
 		c.Clear()
 	} else if rand.Intn(mapCleanDivisor) <= mapCleanProbability {
 		c.Clear()
