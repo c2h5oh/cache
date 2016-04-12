@@ -28,9 +28,7 @@ import (
 )
 
 const (
-	maxCachedObjects    = 1024 * 8
-	mapCleanDivisor     = 1000
-	mapCleanProbability = 1
+	maxCachedObjects = 1024 * 8
 )
 
 func init() {
@@ -80,8 +78,6 @@ func (c *Cache) Write(ob Hashable, v interface{}) {
 	c.mu.Unlock()
 
 	if maxCachedObjects > 0 && maxCachedObjects < l {
-		c.Clear()
-	} else if rand.Intn(mapCleanDivisor) <= mapCleanProbability {
 		c.Clear()
 	}
 
